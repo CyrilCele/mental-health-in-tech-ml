@@ -1,12 +1,12 @@
 """Utilities for loading and validating project datasets."""
-from pathlib import Path
-from typing import Optional
 
 import zipfile
+from pathlib import Path
+
 import pandas as pd
 
 
-def load_dataset(path: Path, target_name: Optional[str] = None) -> pd.DataFrame:
+def load_dataset(path: Path, target_name: str | None = None) -> pd.DataFrame:
     """Load a dataset from a CSV file or a ZIP archive containing a CSV file.
 
     Args:
@@ -29,14 +29,15 @@ def load_dataset(path: Path, target_name: Optional[str] = None) -> pd.DataFrame:
                 if target_name is None:
                     csv_files = [f for f in z.namelist() if f.endswith(".csv")]
                     if not csv_files:
-                        raise ValueError(
-                            f"No CSV files found inside the ZIP archive {path}.")
+                        raise ValueError(f"No CSV files found inside the ZIP archive {path}.")
                     target_name = csv_files[0]  # Take the first CSV file found
 
                 # Verify the requested file actually exists inside the ZIP
                 if target_name not in z.namelist():
                     raise KeyError(
-                        f"'{target_name}' not found in the ZIP archive. Available files: {z.namelist()}")
+                        f"'{target_name}' not found in the ZIP archive."
+                        f"Available files: {z.namelist()}"
+                    )
 
                 # Open and read the specific CSV file from the ZIP
                 with z.open(target_name) as f:

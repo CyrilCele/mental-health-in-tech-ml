@@ -1,7 +1,7 @@
 """
 Download the raw OSMI Mental Health in Tech survey dataset.
 
-This module is responsibles only for acquiring the original survey data
+This module is responsible only for acquiring the original survey data
 from Kaggle. It does not clean, transform, or analyse the dataset.
 
 The downloaded CSV is intentionally kept unchanged in ``data/raw/`` so
@@ -61,7 +61,7 @@ def download_dataset(
         dataset_file,
         path=str(download_path),
         force=False,  # Do not overwrite existing files.
-        quiet=False  # Show download progress.
+        quiet=False,  # Show download progress.
     )
 
     print("Dataset download complete. The raw CSV is available in 'data/raw/'.\n")

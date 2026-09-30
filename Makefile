@@ -1,4 +1,4 @@
-.PHONY install test lint format check notebook
+.PHONY: install test lint format check notebook
 
 install:
 	uv sync
