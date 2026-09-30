@@ -110,6 +110,7 @@ This project uses:
 - Matplotlib
 - Seaborn
 - Jupyter
+- Kaggle API
 
 `uv.lock` provides reproducible dependency resolution.
 
