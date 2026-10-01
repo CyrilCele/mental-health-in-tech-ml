@@ -60,8 +60,6 @@ mental-health-in-tech-ml/
 ├── README.md
 ├── pyproject.toml
 ├── uv.lock
-├── Dockerfile
-├── .dockerignore
 ├── .gitignore
 ├── Makefile
 ├── data/
@@ -83,6 +81,7 @@ mental-health-in-tech-ml/
 │       ├── feature_engineering.py
 │       ├── feature_selection.py
 │       ├── dimensionality_reduction.py
+│       ├── download.py
 │       ├── evaluation.py
 │       └── visualization.py
 ├── tests/
@@ -144,22 +143,6 @@ Start Jupyter:
 
 ```bash
 uv run jupyter lab
-```
-
-## Docker
-
-The project also provides a lightweight Docker environment for reproducible execution.
-
-Build:
-
-```bash
-docker build -t mental-health-in-tech-ml
-```
-
-Run:
-
-```bash
-docker run --rm -p 8888:8888 mental-health-in-tech-ml
 ```
 
 ## Development Philosophy
