@@ -61,7 +61,6 @@ mental-health-in-tech-ml/
 ├── pyproject.toml
 ├── uv.lock
 ├── .gitignore
-├── Makefile
 ├── data/
 │   ├── README.md
 │   ├── raw/
