@@ -37,9 +37,6 @@ desktop.ini
 data/raw/*
 data/processed/*
 
-# Generated figures
-reports/figures/*
-
 # Temporary files
 *.tmp
 *.temp
