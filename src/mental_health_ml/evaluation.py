@@ -1,10 +1,10 @@
 """
 Reusable clustering evaluation utilities.
 
-This module contains evaluation and summarisation functions used by the
-clustering and cluster-interpretation notebooks. Model construction and
-training remain in the notebooks so that the analytical experiments remain
-explicit and easy to audit.
+This module contains project-owned functions for evaluating and summarising
+clustering experiments. The clustering algorithms themselves remain in the
+modeling notebook so that construction and analytical decisions remain
+explicit and auditable.
 """
 from __future__ import annotations
 
@@ -25,14 +25,14 @@ def evaluate_clustering(
     noise_label: int = -1,
 ) -> dict[str, Any]:
     """
-    Calculate common clustering diagnostics for a fitted partition.
+    Calculate standard diagnostics for a clustering partition.
 
     Parameters
     ----------
     X:
-        Feature representation used to produce the cluster labels.
+        Feature representation used to generate the cluster assignments.
     labels:
-        Cluster assignments for each observation.
+        Cluster assignment for each observation.
     inertia:
         Optional within-cluster sum of squared distances, primarily used
         for K-Means.
@@ -40,39 +40,51 @@ def evaluate_clustering(
         Optional Bayesian Information Criterion value, primarily used for
         Gaussian Mixture Models.
     noise_label:
-        Label used by density-based clustering to identify noise prints.
+        Label used to identify noise observations in density-based
+        clustering. DBSCAN uses ``-1`` by convention.
 
     Returns
-    -------
+    ------
     dict[str, Any]
-        Dictionary containing cluster count, noise count, usable sample
-        count, silhouette score, inertia, and BIC where applicable.
+        Cluster count, noise count, evaluated sample count, noise fraction,
+        silhouette score, inertia, and BIC where applicable.
 
     Raises
     ------
     ValueError
-        If the number of observations and labels differ.
+        If the number of observations and labels do not match.
     """
     X_array = np.asarray(X)
     labels_array = np.asarray(labels)
+
+    if X_array.ndim != 2:
+        raise ValueError("X must be a two-dimensional feature matrix.")
+
+    if labels_array.ndim != 1:
+        raise ValueError("Labels must be a one-dimensional array.")
 
     if X_array.shape[0] != labels_array.shape[0]:
         raise ValueError(
             "X and labels must contain the same number of observations."
         )
 
+    # Exclude DBSCAN noise observations from silhouette evaluation.
     noise_mask = labels_array == noise_label
-    evaluation_mask = ~noise_label
-    evaluation_labels = labels_array[evaluation_mask]
+    evaluation_mask = labels_array != noise_label
+
     evaluation_data = X_array[evaluation_mask]
+    evaluation_labels = labels_array[evaluation_mask]
 
     cluster_labels = np.unique(evaluation_labels)
     n_clusters = len(cluster_labels)
+    n_evaluated = int(evaluation_mask.sum())
     n_noise = int(noise_mask.sum())
 
     silhouette = np.nan
 
-    if 2 <= n_clusters < len(evaluation_labels):
+    # A silhouette score requires at least two substantive clustes and
+    # at least one observation in each evaluated cluster.
+    if 2 <= n_clusters < n_evaluated:
         silhouette = float(
             silhouette_score(
                 evaluation_data,
@@ -83,7 +95,7 @@ def evaluate_clustering(
     return {
         "n_clusters": n_clusters,
         "n_noise": n_noise,
-        "n_evaluated": int(evaluation_mask),
+        "n_evaluated": n_evaluated,
         "noise_fraction": n_noise / len(labels_array),
         "silhouette": silhouette,
         "inertia": inertia,
@@ -94,31 +106,41 @@ def evaluate_clustering(
 def cluster_size_table(
     labels: pd.Series | np.ndarray,
     *,
-    noise_label: int = 1,
+    noise_label: int = -1,
 ) -> pd.DataFrame:
     """
-    Return cluster counts and proportions for a set of assignments.
+    Return cluster counts and proportions.
 
     Parameters
     ---------
     labels:
         Cluster assignments for each observation.
     noise_label:
-        Label used to identify density-based noise observations.
+        Label used to identify noise observations.
 
-    Return
-    ------
+    Returns
+    -------
     pandas.DataFrame
-        Cluster counts and percentages sorted by cluster label.
+        Cluster counts, percentages, and cluster type.
     """
-    labels_series = pd.Series(np.asarray(labels), name="cluster")
+    labels_series = pd.Series(
+        np.asarray(labels),
+        name="cluster",
+    )
 
-    counts = labels_series.value_counts(sort=False).sort_index()
+    counts = (
+        labels_series
+        .value_counts(sort=False)
+        .sort_index()
+    )
+
     result = pd.DataFrame(
         {
             "cluster": counts.index,
             "count": counts.values,
-            "percentage": counts.values / len(labels_series) * 100,
+            "percentage": (
+                counts.values / len(labels_series) * 100  # type: ignore
+            ),
         }
     )
 
@@ -138,10 +160,7 @@ def silhouette_profile(
     noise_label: int = -1,
 ) -> pd.DataFrame:
     """
-    Calculate observation-level silhouette values.
-
-    Noise observations are excluded because DBSCAN does not treat them as
-    members of a substantive cluster.
+    Calculate observation-levl silhouette coefficients.
 
     Parameters
     ----------
@@ -150,12 +169,12 @@ def silhouette_profile(
     labels:
         Cluster assignments.
     noise_label:
-        Label used to identify noise observations.
+        Label used to identify density-based noise observations.
 
     Returns
     -------
     pandas.DataFrame
-        Observation-level silhouette values and cluster assignments.
+        Observation-level silhouette coefficients and cluster labels.
 
     Raises
     ------
@@ -166,6 +185,7 @@ def silhouette_profile(
     labels_array = np.asarray(labels)
 
     evaluation_mask = labels_array != noise_label
+
     X_evaluation = X_array[evaluation_mask]
     labels_evaluation = labels_array[evaluation_mask]
 
@@ -180,7 +200,7 @@ def silhouette_profile(
             "silhouette": silhouette_samples(
                 X_evaluation,
                 labels_evaluation,
-            )
+            ),
         }
     )
 
@@ -193,12 +213,12 @@ def summarize_experiment(
     evaluation: dict[str, Any],
 ) -> dict[str, Any]:
     """
-    Create a consistent experiment-record structure.
+    Create a consistent record for a clustering experiment.
 
     Parameters
-    ---------
+    ----------
     experiment_id:
-        Identifier such as E01 or E03.
+        Experiment identifier such as ``E01``.
     model:
         Clustering algorithm name.
     representation:
@@ -206,11 +226,12 @@ def summarize_experiment(
     parameters:
         Model parameters used in the experiment.
     evaluation:
-        Metrics returned by :func:`evaluate_clustering`.
+        Evaluation dictionary returned by
+        :func:`evaluate_clustering`.
 
     Returns
     -------
-    dicti[str, Any]
+    dict[str, Any]
         Flattened experiment record suitable for a comparison DataFrame.
     """
     return {

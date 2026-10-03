@@ -1,15 +1,12 @@
 """
-Reusable visualization functions for the mental-health ML project.
+Reusable visualization functions for clustering analysis.
 
 The functions in this module create analytical figures used by the
 clustering and interpretation notebooks. The notebooks remain responsible
-for deciding which figures are analytically relevant and how their results
-should be interpreted.
+for deciding which figures are needed and how their results should be
+interpreted.
 """
-
 from __future__ import annotations
-
-from typing import Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,7 +21,7 @@ def plot_metric_curve(
     *,
     x: str,
     y: str,
-    ax: plt.Axes,
+    ax: plt.Axes,  # type: ignore
     title: str,
     xlabel: str,
     ylabel: str,
@@ -37,9 +34,9 @@ def plot_metric_curve(
     results:
         DataFrame containing the parameter and metric columns.
     x:
-        Column containing the parameter values.
+        Name of the parameter column.
     y:
-        Column containing the metric values.
+        Name if the metric column.
     ax:
         Matplotlib axis on which to draw the figure.
     title:
@@ -66,11 +63,11 @@ def plot_metric_curve(
 def plot_silhouette_profile(
     silhouette_data: pd.DataFrame,
     *,
-    ax: plt.Axes,
+    ax: plt.Axes,  # type: ignore
     title: str,
 ) -> None:
     """
-    Plot observation-level silhouette values grouped by cluster.
+    Plot observation-level silhouette coefficients by cluster.
 
     Parameters
     ----------
@@ -79,11 +76,13 @@ def plot_silhouette_profile(
     ax:
         Matplotlib axis on which to draw the figure.
     title:
-    Figure title.
+        Figure title.
     """
     y_lower = 10
 
-    for cluster in sorted(silhouette_data["cluster"].unique()):
+    for cluster in sorted(
+        silhouette_data["cluster"].unique()
+    ):
         values = np.sort(
             silhouette_data.loc[
                 silhouette_data["cluster"] == cluster,
@@ -127,7 +126,7 @@ def plot_silhouette_profile(
 def plot_dendrogram(
     linkage_matrix: np.ndarray,
     *,
-    ax: plt.Axes,
+    ax: plt.Axes,  # type: ignore
     title: str,
     truncate_level: int | None = None,
 ) -> None:
@@ -135,26 +134,36 @@ def plot_dendrogram(
     Plot a hierarchical-clustering dendrogram.
 
     Parameters
-    ---------
+    ----------
     linkage_matrix:
-        Linkage matrix returned by SciPy hierarchical clustering.
+        Linkage matrix produced by SciPy hierarchical clustering.
     ax:
         Matplotlib axis on which to draw the dendrogram.
     title:
         Figure title.
     truncate_level:
-        Optional number of final hierarchy levels to display.
+        Optional number of hierarchy levels to display.
     """
+    dendrogram_kwargs = {
+        "ax": ax,
+        "no_labels": True,
+    }
+
+    if truncate_level is not None:
+        dendrogram_kwargs.update(
+            {
+                "truncate_mode": "level",
+                "p": truncate_level,
+            }
+        )
+
     dendrogram(
         linkage_matrix,
-        ax=ax,
-        truncate_mode="level" if truncate_level else None,
-        p=truncate_level if truncate_level else 0,
-        no_labels=True,
+        **dendrogram_kwargs,
     )
 
     ax.set_title(title)
-    ax.set_xlabel("Obseravtions / merged groups")
+    ax.set_xlabel("Observations / merged groups")
     ax.set_ylabel("Cluster distance")
 
 
@@ -162,11 +171,10 @@ def plot_cluster_projection(
     X_2d: pd.DataFrame | np.ndarray,
     labels: pd.Series | np.ndarray,
     *,
-    ax: plt.Axes,
+    ax: plt.Axes,  # type: ignore
     title: str,
     x_label: str,
     y_label: str,
-    noise_label: int = -1,
 ) -> None:
     """
     Plot cluster assignments in a two-dimensional representation.
@@ -185,8 +193,6 @@ def plot_cluster_projection(
         Horizontal-axis label.
     y_label:
         Vertical-axis label.
-    noise_label:
-        Label used for density-based noise observations.
     """
     data = pd.DataFrame(
         {
@@ -215,7 +221,7 @@ def plot_cluster_projection(
 def plot_cluster_sizes(
     cluster_sizes: pd.DataFrame,
     *,
-    ax: plt.Axes,
+    ax: plt.Axes,  # type: ignore
     title: str,
 ) -> None:
     """
@@ -224,7 +230,7 @@ def plot_cluster_sizes(
     Parameters
     ----------
     cluster_sizes:
-        Outpoy from: func:`cluster_size_table`.
+        DataFrame returned by :func:`cluster_size_table`.
     ax:
         Matplotlib axis on which to draw the figure.
     title:
