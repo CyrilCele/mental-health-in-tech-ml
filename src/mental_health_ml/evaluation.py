@@ -5,6 +5,9 @@ This module contains project-owned functions for evaluating and summarising
 clustering experiments. The clustering algorithms themselves remain in the
 modeling notebook so that construction and analytical decisions remain
 explicit and auditable.
+
+The additional diagnostics in this module are complementary measures. they do
+not replace the core evaluation used by the project.
 """
 from __future__ import annotations
 
