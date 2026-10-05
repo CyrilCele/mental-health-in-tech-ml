@@ -67,25 +67,10 @@ mental-health-in-tech-ml/
 │   └── processed/
 ├── notebooks/
 │   ├── 01_business_and_data_understanding.ipynb
-│   ├── 02_data_preparation_and_feature_engineering.ipynb
+│   ├── 02_data_preparation.ipynb
 │   ├── 03_dimensionality_reduction.ipynb
 │   ├── 04_clustering_models.ipynb
 │   └── 05_cluster_evaluation_and_interpretation.ipynb
-├── src/
-│   └── mental_health_ml/
-│       ├── __init__.py
-│       ├── data.py
-│       ├── cleaning.py
-│       ├── feature_engineering.py
-│       ├── feature_selection.py
-│       ├── dimensionality_reduction.py
-│       ├── download.py
-│       ├── evaluation.py
-│       └── visualization.py
-├── tests/
-│   ├── test_cleaning.py
-│   ├── test_preprocessing.py
-│   └── test_feature_engineering.py
 ├── reports/
 │   └── figures/
 └── docs/
