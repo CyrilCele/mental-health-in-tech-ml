@@ -33,10 +33,6 @@ desktop.ini
 .env
 .env.*
 
-# Local data
-data/raw/*
-data/processed/*
-
 # Temporary files
 *.tmp
 *.temp
